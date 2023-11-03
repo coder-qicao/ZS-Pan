@@ -16,11 +16,11 @@ Pansharpening is a challenging low-level vision task whose aim is to fuse LRMS (
 
 The ZS-Pan framework is built with three-dependent stages, i.e., the reduced-resolution supervised pre-training (RSP), the spatial degradation establishment (SDE), and the full-resolution unsupervised generation (FUG) stages.
 #### RSP
-<div align=center><img width="500" src="images/figure4-2.png"/></div>
+<div align=center><img src="images/figure4-2.png"/></div>
 
 The flowchart of the RSP stage. "×𝑁" is the multiplicative factor due to data augmentation.
 #### SDE
-<div align=center><img width="500" src="images/figure4-1.png"/></div>
+<div align=center><img src="images/figure4-1.png"/></div>
 
 The flowchart of the SDE stage. 𝑐𝑖𝑛 and 𝑐𝑜𝑢𝑡 denote the number of channels before and after the CWSB, respectively
 ## Experiment results
@@ -44,17 +44,18 @@ Training and testing codes are in the current folder.
 - For training, you need to set the file_path in the main function, adopt t your train set, validate set, and test set as well. Our code train the .h5 file, you may change it through changing the code in main function.
 - RSP and SDE stages should be trained before FUG stage, while they can be trained simutaneously. 
 - As for testing, you need to set the path in both main and test function to open and load the file.
+- A trained model for a single WV3 full resolution image is attached along the code.
 # Citation
-@article{CAO2024102001,
-title = {Zero-shot semi-supervised learning for pansharpening},
-journal = {Information Fusion},
-volume = {101},
-pages = {102001},
-year = {2024},
-issn = {1566-2535},
-doi = {https://doi.org/10.1016/j.inffus.2023.102001},
-url = {https://www.sciencedirect.com/science/article/pii/S1566253523003172},
-author = {Qi Cao and Liang-Jian Deng and Wu Wang and Junming Hou and Gemine Vivone}
-}
+> @article{CAO2024102001,
+>  title = {Zero-shot semi-supervised learning for pansharpening},
+>  journal = {Information Fusion},
+>  volume = {101},
+>  pages = {102001},
+>  year = {2024},
+>  issn = {1566-2535},
+>  doi = {https://doi.org/10.1016/j.inffus.2023.102001},
+>  url = {https://www.sciencedirect.com/science/article/pii/S1566253523003172},
+>  author = {Qi Cao and Liang-Jian Deng and Wu Wang and Junming Hou and Gemine Vivone}
+> }
 # Contact
 We are glad to hear from you. If you have any questions, please feel free to contact caolucas082@gmail.com.
