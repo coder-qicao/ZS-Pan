@@ -5,13 +5,13 @@
 # @Time    : 2023/10/1 20:29
 # @Author  : Qi Cao
 import h5py
-from Toolbox.model_SDE import FusionNet
+from Toolbox.model_RSP import FusionNet
 from Toolbox.indexes import *
 import scipy.io as sio
 
 
 satellite = 'wv3/'
-name = 19
+name = 0
 # ckpt = 'model_SDE/' + satellite + str(name)
 ckpt = 'model_FUG/' + satellite + str(name)
 model = FusionNet()

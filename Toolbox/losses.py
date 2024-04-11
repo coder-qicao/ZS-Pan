@@ -1,6 +1,6 @@
 import torch
 from torch import nn
-from model_RSP import Net_ms2pan
+from Toolbox.model_SDE import Net_ms2pan
 
 class FUG_Losses(nn.Module):
     def __init__(self, device, ms2pan_pth_path):

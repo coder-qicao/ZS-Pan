@@ -4,16 +4,16 @@
 #
 # @Time    : 2023/10/1 20:29
 # @Author  : Qi Cao
+import torch
 import torch.backends.cudnn as cudnn
 import torch.optim as optim
 from torch.autograd import Variable
 from torch.utils.data import DataLoader
 from Toolbox.data_SDE import Dataset
+from Toolbox.model_SDE import Net_ms2pan
 from Toolbox.losses import SDE_Losses
-from Toolbox.model_SDE import FusionNet
-from Toolbox.indexes import *
-from Toolbox.model_RSP import Net_ms2pan
-from Toolbox.wald_utilities import wald_protocol_v1, wald_protocol_v2
+import numpy as np
+from Toolbox.wald_utilities import wald_protocol_v2
 
 # ================== Pre-Define =================== #
 SEED = 10
@@ -23,23 +23,20 @@ torch.cuda.manual_seed_all(SEED)
 # cudnn.benchmark = True  ###自动寻找最优算法
 cudnn.deterministic = True
 
-# ============= HYPER PARAMS(Pre-Defined) ========= #
-lr = 0.0005
-epochs = 150
-batch_size = 1
+# ============= HYPER PARAMS(Pre-Defined) ==========#
 device = torch.device('cuda')
-satellite = 'wv3/'
-name = 19  # data id: 0-19
-model = FusionNet().to(device)
+lr = 0.0005
+epochs = 250
+batch_size = 1
+model = Net_ms2pan().to(device)
+optimizer = optim.Adam(model.parameters(), lr=lr, betas=(0.9, 0.999))  # optimizer 1
 criterion = SDE_Losses(device)
-F_ms2pan = Net_ms2pan().to(device)
-F_ms2pan.load_state_dict(torch.load('model_RSP/' + satellite + str(name) + '_Net_ms2pan.pth'))
-optimizer = optim.Adam(model.parameters(), lr=lr, betas=(0.9, 0.999)) # optimizer 1
-betas = 1
+satellite = "wv3/"
+name = 19  # data id: 0-19
 
 
 def save_checkpoint(model, name):  # save model_FUG function
-    model_out_path = 'model_SDE/' + satellite + name
+    model_out_path = 'model_SDE/' + satellite + str(name) + '_Net_ms2pan.pth'
     torch.save(model.state_dict(), model_out_path)
 
 
@@ -49,43 +46,40 @@ def save_checkpoint(model, name):  # save model_FUG function
 
 
 def train(training_data_loader, name):
+    # t1 = time.time() # training time
     print('Start training...')
-    min_loss = 100
-    # t1 = time.time()  # training time
+    min_loss = 1
     for epoch in range(epochs):
         epoch += 1
-        epoch_train_loss = []
+        epoch_train_loss, epoch_val_loss = [], []
+
         # ============Epoch Train=============== #
         model.train()
+
         for iteration, batch in enumerate(training_data_loader, 1):
             ms, lms, pan = Variable(batch[0]).to(device), \
-                           Variable(batch[1]).to(device), \
-                           Variable(batch[2], requires_grad=False).to(device)
+                      Variable(batch[1]).to(device), \
+                      Variable(batch[2], requires_grad=False).to(device)
+
+            pan = wald_protocol_v2(ms, pan, 4, 'WV3')
             optimizer.zero_grad()  # fixed
+            out = model(ms)
 
-            lms_rr = wald_protocol_v1(lms, pan, 4, 'WV3')
-            pan_rr = wald_protocol_v2(ms, pan, 4, 'WV3')
-            res = model(lms_rr, pan_rr)
-            out2 = lms_rr + res
-            loss = criterion(out2, ms)  # compute loss
-
-            total_loss = loss
+            loss = criterion(out, pan)  # compute loss
             epoch_train_loss.append(loss.item())  # save all losses into a vector for one epoch
-            total_loss.backward()  # fixed
+
+            loss.backward()  # fixed
             optimizer.step()  # fixed
 
-        t_loss1 = np.nanmean(np.array(epoch_train_loss))  # compute the mean value of all losses, as one epoch loss
-        t_total_loss = t_loss1
-
-        if epoch % 1 == 0:
-            print('Epoch: {} t_loss: {:.7f} '.format(epoch, t_loss1))
-
-        if t_total_loss < min_loss:
-            min_loss = t_total_loss
+        t_loss = np.nanmean(np.array(epoch_train_loss))
+        #     save_checkpoint(model_FUG, epoch)
+        if t_loss < min_loss:
             save_checkpoint(model, name)
+            min_loss = t_loss
+        if epoch % 10 == 0:
+            print('Epoch: {} training loss: {:.7f}'.format(epoch, t_loss))
     # t2 = time.time() # training time
-    # print(t2-t1) # training time
-
+    # print(t2-t1)  # training time
 ###################################################################
 # ------------------- Main Function (Run first) -------------------
 ###################################################################
@@ -97,4 +91,4 @@ if __name__ == "__main__":
                                       pin_memory=True,
                                       drop_last=True)  # put training data to DataLoader for batches
     print(f"train {name}:")
-    train(training_data_loader, str(name))
+    train(training_data_loader, name)

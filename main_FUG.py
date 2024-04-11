@@ -12,7 +12,7 @@ from Toolbox.data_FUG import Dataset
 from Toolbox.losses import FUG_Losses
 from Toolbox.model_FUG import FusionNet
 from Toolbox.indexes import *
-from Toolbox.model_RSP import Net_ms2pan
+from Toolbox.model_SDE import Net_ms2pan
 from Toolbox.wald_utilities import wald_protocol_v1
 import time
 
@@ -32,14 +32,14 @@ ckpt = 1000
 batch_size = 1
 device = torch.device('cuda')
 satellite = 'wv3/'
-name = 19
+name = 19 # data id: 0-19
 model = FusionNet().to(device)
 model2 = FusionNet().to(device)
-model.load_state_dict(torch.load('model_SDE/' + satellite + str(name)))
+model.load_state_dict(torch.load('model_RSP/' + satellite + str(name)))
 # model_FUG.load_state_dict(torch.load('model_FUG/' + satellite + str(name)))
-criterion = FUG_Losses(device, 'model_RSP/' + satellite + str(name) + '_Net_ms2pan.pth')
+criterion = FUG_Losses(device, 'model_SDE/' + satellite + str(name) + '_Net_ms2pan.pth')
 F_ms2pan = Net_ms2pan().to(device)
-F_ms2pan.load_state_dict(torch.load('model_RSP/' + satellite + str(name) + '_Net_ms2pan.pth'))
+F_ms2pan.load_state_dict(torch.load('model_SDE/' + satellite + str(name) + '_Net_ms2pan.pth'))
 optimizer = optim.Adam(model.parameters(), lr=lr, betas=(0.9, 0.999)) # optimizer 1
 betas = [8, 1]
 

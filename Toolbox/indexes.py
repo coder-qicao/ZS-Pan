@@ -5,7 +5,7 @@
 # @Time    : 2022/4/14 21:03
 # @Author  : Xiao Wu
 
-from wald_utilities import MTF
+from Toolbox.wald_utilities import MTF
 #from mtf import MTF_MS
 import torch
 from torch.nn import functional as F
