@@ -4,6 +4,8 @@
 #
 # @Time    : 2023/10/1 20:29
 # @Author  : Qi Cao
+import argparse
+import time
 import torch.backends.cudnn as cudnn
 import torch.optim as optim
 from torch.autograd import Variable
@@ -24,17 +26,27 @@ torch.cuda.manual_seed_all(SEED)
 cudnn.deterministic = True
 
 # ============= HYPER PARAMS(Pre-Defined) ========= #
-lr = 0.0005
-epochs = 150
-batch_size = 1
-device = torch.device('cuda')
-satellite = 'wv3/'
-name = 19  # data id: 0-19
+parser = argparse.ArgumentParser()
+parser.add_argument("--lr", type=float, default=0.0005, help="Learning rate")
+parser.add_argument("--epochs", type=int, default=150, help="Number of epochs")
+parser.add_argument("--batch_size", type=int, default=1, help="Batch size")
+parser.add_argument("--device", type=str, default='cuda', help="Device to use")
+parser.add_argument("--name", type=int, required=True, help="Data ID (0-19)")
+parser.add_argument("--satellite", type=str, default='wv3/', help="Satellite type")
+args = parser.parse_args()
+
+lr = args.lr
+epochs = args.epochs
+batch_size = args.batch_size
+device = torch.device(args.device)
+name = args.name
+satellite = args.satellite
+
 model = FusionNet().to(device)
 criterion = RSP_Losses(device)
 F_ms2pan = Net_ms2pan().to(device)
-F_ms2pan.load_state_dict(torch.load('model_SDE/' + satellite + str(name) + '_Net_ms2pan.pth'))
-optimizer = optim.Adam(model.parameters(), lr=lr, betas=(0.9, 0.999)) # optimizer 1
+F_ms2pan.load_state_dict(torch.load(f'model_SDE/{satellite}{name}_Net_ms2pan.pth'))
+optimizer = optim.Adam(model.parameters(), lr=lr, betas=(0.9, 0.999))  # optimizer 1
 betas = 1
 
 
@@ -49,9 +61,9 @@ def save_checkpoint(model, name):  # save model_FUG function
 
 
 def train(training_data_loader, name):
-    print('Start training...')
+    print('Run RSP...')
     min_loss = 100
-    # t1 = time.time()  # training time
+    t1 = time.time()  # training time
     for epoch in range(epochs):
         epoch += 1
         epoch_train_loss = []
@@ -77,14 +89,14 @@ def train(training_data_loader, name):
         t_loss1 = np.nanmean(np.array(epoch_train_loss))  # compute the mean value of all losses, as one epoch loss
         t_total_loss = t_loss1
 
-        if epoch % 1 == 0:
-            print('Epoch: {} t_loss: {:.7f} '.format(epoch, t_loss1))
+        if epoch % 10 == 0:
+            print('RSP stage: Epoch: {} t_loss: {:.7f} '.format(epoch, t_loss1))
 
         if t_total_loss < min_loss:
             min_loss = t_total_loss
             save_checkpoint(model, name)
-    # t2 = time.time() # training time
-    # print(t2-t1) # training time
+    t2 = time.time()  # training time
+    print(f'RSP time: {t2-t1}s')  # training time
 
 ###################################################################
 # ------------------- Main Function (Run first) -------------------
@@ -96,5 +108,4 @@ if __name__ == "__main__":
     training_data_loader = DataLoader(dataset=train_set, num_workers=0, batch_size=batch_size, shuffle=True,
                                       pin_memory=True,
                                       drop_last=True)  # put training data to DataLoader for batches
-    print(f"train {name}:")
     train(training_data_loader, str(name))

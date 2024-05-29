@@ -4,6 +4,8 @@
 #
 # @Time    : 2023/10/1 20:29
 # @Author  : Qi Cao
+import argparse
+import time
 import torch
 import torch.backends.cudnn as cudnn
 import torch.optim as optim
@@ -24,15 +26,25 @@ torch.cuda.manual_seed_all(SEED)
 cudnn.deterministic = True
 
 # ============= HYPER PARAMS(Pre-Defined) ==========#
-device = torch.device('cuda')
-lr = 0.0005
-epochs = 250
-batch_size = 1
+parser = argparse.ArgumentParser()
+parser.add_argument("--lr", type=float, default=0.0005, help="Learning rate")
+parser.add_argument("--epochs", type=int, default=250, help="Number of epochs")
+parser.add_argument("--batch_size", type=int, default=1, help="Batch size")
+parser.add_argument("--device", type=str, default='cuda', help="Device to use")
+parser.add_argument("--name", type=int, required=True, help="Data ID (0-19)")
+parser.add_argument("--satellite", type=str, default='wv3/', help="Satellite type")
+args = parser.parse_args()
+
+lr = args.lr
+epochs = args.epochs
+batch_size = args.batch_size
+device = torch.device(args.device)
+name = args.name
+satellite = args.satellite
+
 model = Net_ms2pan().to(device)
 optimizer = optim.Adam(model.parameters(), lr=lr, betas=(0.9, 0.999))  # optimizer 1
 criterion = SDE_Losses(device)
-satellite = "wv3/"
-name = 19  # data id: 0-19
 
 
 def save_checkpoint(model, name):  # save model_FUG function
@@ -46,8 +58,8 @@ def save_checkpoint(model, name):  # save model_FUG function
 
 
 def train(training_data_loader, name):
-    # t1 = time.time() # training time
-    print('Start training...')
+    t1 = time.time() # training time
+    print('Run SDE...')
     min_loss = 1
     for epoch in range(epochs):
         epoch += 1
@@ -72,14 +84,13 @@ def train(training_data_loader, name):
             optimizer.step()  # fixed
 
         t_loss = np.nanmean(np.array(epoch_train_loss))
-        #     save_checkpoint(model_FUG, epoch)
         if t_loss < min_loss:
             save_checkpoint(model, name)
             min_loss = t_loss
         if epoch % 10 == 0:
-            print('Epoch: {} training loss: {:.7f}'.format(epoch, t_loss))
-    # t2 = time.time() # training time
-    # print(t2-t1)  # training time
+            print('SDE stage: Epoch: {} training loss: {:.7f}'.format(epoch, t_loss))
+    t2 = time.time()  # training time
+    print(f'SDE time: {t2-t1}s')  # training time
 ###################################################################
 # ------------------- Main Function (Run first) -------------------
 ###################################################################
@@ -90,5 +101,4 @@ if __name__ == "__main__":
     training_data_loader = DataLoader(dataset=train_set, num_workers=0, batch_size=batch_size, shuffle=True,
                                       pin_memory=True,
                                       drop_last=True)  # put training data to DataLoader for batches
-    print(f"train {name}:")
     train(training_data_loader, name)

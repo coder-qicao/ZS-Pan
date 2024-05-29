@@ -39,7 +39,7 @@ The flowchart of the SDE stage. 𝑐𝑖𝑛 and 𝑐𝑜𝑢𝑡 denote the num
 - NVIDIA GPU + CUDA
 - Python packages: pip install numpy scipy h5py torchsummary
 ## Code
-Training and testing codes are in the current folder.
+Training and testing codes are in the current folder. Run the file run.py to start!
 - The code for training is in main_xxx.py (three stages), while the code for testing test.py.
 - For training, you need to set the file_path in the main function, adopt t your train set, validate set, and test set as well. Our code train the .h5 file, you may change it through changing the code in main function.
 - RSP and SDE stages should be trained before FUG stage, while they can be trained simutaneously. 
