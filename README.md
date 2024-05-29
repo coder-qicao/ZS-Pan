@@ -5,6 +5,7 @@
 - A two-phase three-component semi-supervised model is designed for ZS-Pan.
 - State-of-the-art (SOTA) performance on the [PanCollection](https://github.com/liangjiandeng/PanCollection) of remote sensing pansharpening.
 
+# ZS-Pan v1
 ## Method
 ### pansharpening
 <div align=center><img width="500" src="images/figure1.png"/></div>
@@ -29,6 +30,12 @@ The flowchart of the SDE stage. 𝑐𝑖𝑛 and 𝑐𝑜𝑢𝑡 denote the num
 
 - Visual results on WV3 datasets (full resolution) of PanCollection.
 <div align=center><img src="images/WV3-9.png"/></div>
+
+# ZS-Pan v2 (updated on 5/29/2024)
+## Updates
+- Introduced the code 'run.py' for seamless one-click execution of all codes
+- Updated the codes main_rsp.py, main_sde.py, main_fug.py, and test.py to facilitate unified parameter tuning within 'run.py', streamlining the tuning process
+- Adjusted certain default hyperparameters to enhance runtime performance while maintaining consistent metrics (reducing the total time to approximately one minute)
 
 # Get Strarted
 ## Dataset
